@@ -1,0 +1,14 @@
+[package]
+name = "fingerprint-sensor"
+version = "0.1.0"
+edition = "2021"
+description = "A Rust library for interfacing with fingerprint sensors."
+repository = "https://github.com/mushonnip/fingerprint-sensor"
+keywords = ["fingerprint", "sensor"]
+license = "MIT"
+readme = "README.md"
+categories = ["hardware-support", "embedded"]
+
+[dependencies]
+byteorder = "1.5.0"
+serialport = "4.6.1"
