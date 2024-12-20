@@ -178,7 +178,7 @@ impl Device {
         let r = self.get_packet(14)?;
 
         if r.len() >= 3 {
-            self.template_count = BigEndian::read_u16(&r[1..3]) as u16;
+            self.template_count = BigEndian::read_u16(&r[1..3]);
         } else {
             self.template_count = 0;
         }
