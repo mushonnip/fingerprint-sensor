@@ -1,5 +1,8 @@
 # fingerprint-sensor
 
+[![Docs](https://docs.rs/fingerprint-sensor/badge.svg)](https://docs.rs/fingerprint-sensor)
+[![crates.io](https://img.shields.io/crates/v/fingerprint-sensor.svg)](https://crates.io/crates/fingerprint-sensor)
+
 fingerprint-sensor is a Rust library for interfacing with fingerprint sensors. This project aims to provide an easy-to-use API for biometric authentication and fingerprint sensor interaction, especially in embedded environments.
 
 ## Features
