@@ -1,0 +1,8 @@
+[package]
+name = "fingerprint-sensor-example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fingerprint-sensor = "0.1.1"
+serialport = "4.6.1"
