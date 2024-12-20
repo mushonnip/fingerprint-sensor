@@ -32,19 +32,19 @@ pub const BADLOCATION: u8 = 0x0B;
 pub const FLASHERR: u8 = 0x18;
 
 pub struct Device {
-    _debug: bool,
+    pub _debug: bool,
     uart: Box<dyn SerialPort>,
     status_register: Option<u16>,
     system_id: Option<u16>,
-    library_size: Option<u16>,
+    pub library_size: Option<u16>,
     security_level: Option<u16>,
     address: Vec<u8>,
     data_packet_size: Option<u16>,
     baudrate: Option<u16>,
     password: Vec<u8>,
-    template_count: u16,
-    finger_id: u16,
-    confidence: u16,
+    pub template_count: u16,
+    pub finger_id: u16,
+    pub confidence: u16,
 }
 
 impl Device {
