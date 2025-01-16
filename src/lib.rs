@@ -19,6 +19,7 @@ const FINGERPRINTSEARCH: u8 = 0x04;
 const REGMODEL: u8 = 0x05;
 const STORE: u8 = 0x06;
 const DELETE: u8 = 0x0C;
+const DELETEALL: u8 = 0x0D;
 
 pub const OK: u8 = 0x0;
 pub const NOFINGER: u8 = 0x02;
@@ -32,7 +33,7 @@ pub const BADLOCATION: u8 = 0x0B;
 pub const FLASHERR: u8 = 0x18;
 
 pub struct Device {
-    pub _debug: bool,
+    debug: bool,
     uart: Box<dyn SerialPort>,
     status_register: Option<u16>,
     system_id: Option<u16>,
@@ -48,9 +49,9 @@ pub struct Device {
 }
 
 impl Device {
-    pub fn new(address: Vec<u8>, password: Vec<u8>, uart: Box<dyn SerialPort>) -> Self {
+    fn new(address: Vec<u8>, password: Vec<u8>, uart: Box<dyn SerialPort>, debug: bool) -> Result<Device, std::io::Error> {
         let mut device = Self {
-            _debug: false,
+            debug,
             uart,
             address,
             password,
@@ -66,14 +67,15 @@ impl Device {
         };
 
         if !device.verify_password() {
-            panic!("Failed to find sensor, check wiring!");
+            return Err(io::Error::new(
+                io::ErrorKind::ConnectionRefused,
+                "Failed to find sensor, check wiring",
+            ));
         }
 
-        if device.read_sysparam().is_err() {
-            panic!("Failed to read system parameters!");
-        }
+        device.read_sysparam()?;
 
-        device
+        Ok(device)
     }
 
     pub fn verify_password(&mut self) -> bool {
@@ -277,14 +279,62 @@ impl Device {
         Ok(r[0])
     }
 
+    pub fn delete_all(&mut self) -> io::Result<u8> {
+        self.send_packet(&[DELETEALL])?;
+
+        let r = self.get_packet(12)?;
+        Ok(r[0])
+    }
+
     fn print_debug(&self, message: &str, data: impl std::fmt::Debug, data_type: &str) {
-        if self._debug {
+        if self.debug {
             if data_type == "hex" {
                 println!("{}: {:X?}", message, data);
             } else {
                 println!("{}: {:?}", message, data);
             }
         }
+    }
+}
+
+pub struct DeviceBuilder {
+    address: Vec<u8>,
+    password: Vec<u8>,
+    uart: Option<Box<dyn SerialPort>>,
+    debug: bool,
+}
+
+impl DeviceBuilder {
+    pub fn new(address: Vec<u8>, password: Vec<u8>) -> Self {
+        Self {
+            address,
+            password,
+            uart: None,
+            debug: false,
+        }
+    }
+
+    pub fn enable_debug(mut self) -> Self {
+        self.debug = true;
+        self
+    }
+
+    pub fn uart_from_port(
+        mut self,
+        port: &str,
+        baud_rate: u32,
+    ) -> io::Result<Self> {
+        let uart = serialport::new(port, baud_rate)
+            .timeout(std::time::Duration::from_millis(1000))
+            .open()?;
+        
+        self.uart = Some(uart);
+        Ok(self)
+    }
+
+    pub fn build(self) -> io::Result<Device> {
+        let uart = self.uart.ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "UART not set"))?;
+        Device::new(self.address, self.password, uart, self.debug)
     }
 }
 

@@ -1,8 +1,7 @@
 use fingerprint_sensor::{
-    Device, BADLOCATION, ENROLLMISMATCH, FEATUREFAIL, FLASHERR, IMAGEFAIL, IMAGEMESS, INVALIDIMAGE,
-    NOFINGER, OK,
+    Device, DeviceBuilder, BADLOCATION, ENROLLMISMATCH, FEATUREFAIL, FLASHERR, IMAGEFAIL,
+    IMAGEMESS, INVALIDIMAGE, NOFINGER, OK,
 };
-use serialport::{self};
 use std::io::{self, Write};
 use std::process::exit;
 use std::thread::sleep;
@@ -154,17 +153,15 @@ fn enroll_finger(location: u16, device: &mut Device) -> io::Result<()> {
 }
 
 fn main() -> io::Result<()> {
-    let port_name = "/dev/ttyS3";
+    let port_name = "/dev/ttyUSB0";
     let baud_rate = 57600;
-
-    let uart = serialport::new(port_name, baud_rate)
-        .timeout(Duration::from_millis(900))
-        .open()
-        .expect("Failed to open serial port");
-
     let address = vec![0xFF; 4];
     let password = vec![0; 4];
-    let mut device = Device::new(address, password, uart);
+
+    let mut device = DeviceBuilder::new(address, password)
+        .uart_from_port(port_name, baud_rate)?
+        // .enable_debug()
+        .build()?;
 
     match device.count_templates() {
         Ok(_) => println!("Template count: {}", device.template_count),
